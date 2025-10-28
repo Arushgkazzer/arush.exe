@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "echo 'Starting Vite build...' && vite build && echo 'Build completed!' && ls -la dist/",
+    "build": "vite build",
+    "build:debug": "echo 'Starting Vite build...' && vite build && echo 'Build completed!'",
     "build:simple": "vite build",
     "start": "vite preview",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
@@ -36,6 +37,7 @@
     "eslint-plugin-react-refresh": "^0.4.3",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.3.5",
+    "terser": "^5.24.0",
     "vite": "^4.4.5"
   }
 }

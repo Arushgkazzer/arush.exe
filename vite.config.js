@@ -12,7 +12,7 @@ export default defineConfig({
     assetsDir: 'assets',
     sourcemap: false,
     target: 'es2015',
-    minify: 'terser',
+    minify: 'esbuild', // Use esbuild as fallback, faster than terser
     rollupOptions: {
       output: {
         manualChunks: (id) => {
