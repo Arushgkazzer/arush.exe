@@ -10,13 +10,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import LoadingScreen from './components/LoadingScreen'
 import Navigation from './components/Navigation'
 import Hero from './sections/Hero'
+import Scene3D from './components/Scene3D'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // Lazy loaded components (loaded when needed)
 const About = lazy(() => import('./sections/About'))
 const Skills = lazy(() => import('./sections/Skills'))
 const Projects = lazy(() => import('./sections/Projects'))
 const Contact = lazy(() => import('./sections/Contact'))
-const Scene3D = lazy(() => import('./components/Scene3D'))
 const Experience = lazy(() => import('./sections/Experience'))
 const Footer = lazy(() => import('./components/Footer'))
 
@@ -74,61 +75,66 @@ function App() {
   }, [])
 
   return (
-    <Router>
-      <div className="App">
-        <Suspense fallback={<LoadingScreen />}>
-          {/* Hide Leva controls in production */}
-          <Leva hidden={process.env.NODE_ENV === 'production'} />
-          
-          {/* Fixed 3D Canvas Background */}
-          <div className="fixed inset-0 z-0">
-            <Canvas
-              camera={{ position: [0, 0, 5], fov: 75 }}
-              gl={{ 
-                antialias: false, 
-                alpha: true, 
-                powerPreference: 'high-performance',
-                stencil: false,
-                depth: false
-              }}
-              dpr={isUserScrolling ? 0.5 : [0.5, 1.5]}
-              performance={{ min: 0.5 }}
-              frameloop={isUserScrolling ? 'demand' : 'always'}
-            >
-              <Suspense fallback={null}>
+    <ErrorBoundary>
+      <Router>
+        <div className="App">
+          <Suspense fallback={<LoadingScreen />}>
+            {/* Hide Leva controls in production */}
+            <Leva hidden={process.env.NODE_ENV === 'production'} />
+            
+            {/* Fixed 3D Canvas Background */}
+            <div className="fixed inset-0 z-0">
+              <Canvas
+                camera={{ position: [0, 0, 5], fov: 75 }}
+                gl={{ 
+                  antialias: false, 
+                  alpha: true, 
+                  powerPreference: 'high-performance',
+                  stencil: false,
+                  depth: false
+                }}
+                dpr={isUserScrolling ? 0.5 : [0.5, 1.5]}
+                performance={{ min: 0.5 }}
+                frameloop={isUserScrolling ? 'demand' : 'always'}
+                fallback={
+                  <div className="w-full h-full bg-gradient-to-br from-primary via-secondary to-primary">
+                    <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-accent-pink/10 to-accent-purple/10"></div>
+                  </div>
+                }
+              >
                 <Scene3D forceLowQuality={forceLowQuality || isUserScrolling} isScrolling={isUserScrolling} />
-              </Suspense>
-            </Canvas>
-          </div>
+              </Canvas>
+            </div>
 
-          {/* Main Content */}
-          <div className="relative z-10">
-            <Navigation />
-            <main>
-              <Hero />
-              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
-                <About />
+            {/* Main Content */}
+            <div className="relative z-10">
+              <Navigation />
+              <main>
+                <Hero />
+                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
+                  <About />
+                </Suspense>
+                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
+                  <Experience />
+                </Suspense>
+                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
+                  <Skills />
+                </Suspense>
+                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
+                  <Projects />
+                </Suspense>
+                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
+                  <Contact />
+                </Suspense>
+              </main>
+              <Suspense fallback={null}>
+                <Footer />
               </Suspense>
-              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
-                <Experience />
-              </Suspense>
-              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
-                <Skills />
-              </Suspense>
-              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
-                <Projects />
-              </Suspense>
-              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
-                <Contact />
-              </Suspense>
-            </main>
-            <Suspense fallback={null}>
-              <Footer />
-            </Suspense>
-          </div>
-        </Suspense>
-      </div>
-    </Router>
+            </div>
+          </Suspense>
+        </div>
+      </Router>
+    </ErrorBoundary>
   )
 }
 
