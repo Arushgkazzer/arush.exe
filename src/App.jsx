@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect } from 'react'
+import React, { Suspense, useEffect, lazy } from 'react'
 import { BrowserRouter as Router } from 'react-router-dom'
 import { Canvas } from '@react-three/fiber'
 import { Leva, useControls } from 'leva'
@@ -6,17 +6,19 @@ import Lenis from 'lenis'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
-// Components
+// Critical components (loaded immediately)
 import LoadingScreen from './components/LoadingScreen'
 import Navigation from './components/Navigation'
 import Hero from './sections/Hero'
-import About from './sections/About'
-import Skills from './sections/Skills'
-import Projects from './sections/Projects'
-import Contact from './sections/Contact'
-import Scene3D from './components/Scene3D'
-import Experience from './sections/Experience'
-import Footer from './components/Footer'
+
+// Lazy loaded components (loaded when needed)
+const About = lazy(() => import('./sections/About'))
+const Skills = lazy(() => import('./sections/Skills'))
+const Projects = lazy(() => import('./sections/Projects'))
+const Contact = lazy(() => import('./sections/Contact'))
+const Scene3D = lazy(() => import('./components/Scene3D'))
+const Experience = lazy(() => import('./sections/Experience'))
+const Footer = lazy(() => import('./components/Footer'))
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger)
@@ -29,35 +31,37 @@ function App() {
   const [isUserScrolling, setIsUserScrolling] = React.useState(false)
   const scrollTimeoutRef = React.useRef()
   useEffect(() => {
-    // Initialize Lenis smooth scroll
+    // Initialize Lenis smooth scroll with performance optimizations
     const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      duration: 0.8,  // Faster scroll duration
+      easing: (t) => 1 - Math.pow(1 - t, 3),  // Simpler easing function
       direction: 'vertical',
       gestureDirection: 'vertical',
       smooth: true,
-      mouseMultiplier: 1,
+      mouseMultiplier: 0.8,  // Reduced for better control
       smoothTouch: false,
-      touchMultiplier: 2,
+      touchMultiplier: 1.5,  // Reduced for mobile performance
       infinite: false,
+      lerp: 0.1,  // Smoother interpolation
     })
 
-    // Lenis animation frame (single RAF driver)
+    // Optimized animation frame with throttling
+    let rafId
     function raf(time) {
       lenis.raf(time)
-      requestAnimationFrame(raf)
+      rafId = requestAnimationFrame(raf)
     }
-    requestAnimationFrame(raf)
+    rafId = requestAnimationFrame(raf)
 
     // Connect Lenis with GSAP ScrollTrigger
-    // Call ScrollTrigger.update on Lenis scroll — do NOT call lenis.raf from gsap.ticker to avoid double-calls.
     lenis.on('scroll', ScrollTrigger.update)
 
-    // Track active scrolling to reduce renderer load while scrolling
+    // Optimized scroll tracking with debouncing
+    let scrollTimeout
     const onLenisScroll = () => {
       setIsUserScrolling(true)
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
-      scrollTimeoutRef.current = setTimeout(() => setIsUserScrolling(false), 150)
+      clearTimeout(scrollTimeout)
+      scrollTimeout = setTimeout(() => setIsUserScrolling(false), 100)  // Faster response
     }
 
     lenis.on('scroll', onLenisScroll)
@@ -80,10 +84,20 @@ function App() {
           <div className="fixed inset-0 z-0">
             <Canvas
               camera={{ position: [0, 0, 5], fov: 75 }}
-              gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
-              dpr={isUserScrolling ? 1 : [1, 1.5]}
+              gl={{ 
+                antialias: false, 
+                alpha: true, 
+                powerPreference: 'high-performance',
+                stencil: false,
+                depth: false
+              }}
+              dpr={isUserScrolling ? 0.5 : [0.5, 1.5]}
+              performance={{ min: 0.5 }}
+              frameloop={isUserScrolling ? 'demand' : 'always'}
             >
-              <Scene3D forceLowQuality={forceLowQuality || isUserScrolling} isScrolling={isUserScrolling} />
+              <Suspense fallback={null}>
+                <Scene3D forceLowQuality={forceLowQuality || isUserScrolling} isScrolling={isUserScrolling} />
+              </Suspense>
             </Canvas>
           </div>
 
@@ -92,13 +106,25 @@ function App() {
             <Navigation />
             <main>
               <Hero />
-              <About />
-              <Experience />
-              <Skills />
-              <Projects />
-              <Contact />
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
+                <About />
+              </Suspense>
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
+                <Experience />
+              </Suspense>
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
+                <Skills />
+              </Suspense>
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
+                <Projects />
+              </Suspense>
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full"></div></div>}>
+                <Contact />
+              </Suspense>
             </main>
-            <Footer />
+            <Suspense fallback={null}>
+              <Footer />
+            </Suspense>
           </div>
         </Suspense>
       </div>

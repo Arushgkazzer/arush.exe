@@ -61,11 +61,14 @@ const ParticleField = ({ particleCount = 1000, slow = false }) => {
 
   const accRef = useRef(0)
   useFrame((state, delta) => {
+    if (!points.current) return
+    
     accRef.current += delta
-    const step = slow ? 1 / 30 : 1 / 60
-    if (accRef.current >= step && points.current) {
-      points.current.rotation.x += state.clock.elapsedTime * (slow ? 0.01 : 0.05)
-      points.current.rotation.y += state.clock.elapsedTime * (slow ? 0.02 : 0.1)
+    const step = slow ? 1 / 15 : 1 / 30  // Reduced frame rate for particles
+    if (accRef.current >= step) {
+      const speed = slow ? 0.005 : 0.02
+      points.current.rotation.x += speed
+      points.current.rotation.y += speed * 1.5
       accRef.current = 0
     }
   })
@@ -184,13 +187,21 @@ const Scene3D = ({ forceLowQuality = false, isScrolling = false }) => {
   const checkPerf = () => {
     const cores = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4
     const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
-    setIsLowPerf(window.innerWidth < 900 || cores <= 4 || dpr > 1.5)
+    const memory = typeof navigator !== 'undefined' && navigator.deviceMemory ? navigator.deviceMemory : 4
+    setIsLowPerf(window.innerWidth < 900 || cores <= 4 || dpr > 1.5 || memory < 4)
   }
 
   useEffect(() => {
     checkPerf()
-    window.addEventListener('resize', checkPerf)
-    return () => window.removeEventListener('resize', checkPerf)
+    const resizeHandler = () => {
+      clearTimeout(window.resizeTimeout)
+      window.resizeTimeout = setTimeout(checkPerf, 100)
+    }
+    window.addEventListener('resize', resizeHandler)
+    return () => {
+      window.removeEventListener('resize', resizeHandler)
+      clearTimeout(window.resizeTimeout)
+    }
   }, [])
 
   // allow dev override from Leva control
@@ -199,11 +210,11 @@ const Scene3D = ({ forceLowQuality = false, isScrolling = false }) => {
     else checkPerf()
   }, [forceLowQuality])
 
-  // adapt settings
-  const particleCount = isLowPerf ? 400 : 1000
-  const starsCount = isLowPerf ? 1000 : 5000
-  const sphereSegments = isLowPerf ? 16 : 32
-  const enableEffects = !isLowPerf
+  // More aggressive performance scaling
+  const particleCount = isScrolling ? 100 : isLowPerf ? 300 : 800
+  const starsCount = isScrolling ? 200 : isLowPerf ? 500 : 2000
+  const sphereSegments = isScrolling ? 8 : isLowPerf ? 12 : 24
+  const enableEffects = !isLowPerf && !isScrolling
 
   // If parent signals scrolling, temporarily reduce activity
   // Parent can pass `isScrolling` prop (App) or `forceLowQuality` to force low perf
