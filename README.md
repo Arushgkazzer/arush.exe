@@ -48,7 +48,7 @@ A cutting-edge, fully responsive 3D animated portfolio website built with modern
 
 #### **Contact Section**
 - **Animated SVG line drawing** around the form
-- Real-time form validation
+- Interactive contact form with validation
 - Animated submit states and success messages
 
 ## 🛠️ Tech Stack
@@ -233,20 +233,4 @@ If you have any questions or need help customizing the portfolio:
 
 *Ready to create something amazing? Let's build the future of web experiences together!*
 
-## 📨 Contact Form / Email delivery (local setup)
-
-This project includes a small Node/Express email API you can run locally to forward contact form submissions to your inbox.
-
-1. Copy `.env.example` to `.env` and fill in your SMTP credentials (for Gmail, use an app password if your account has 2FA enabled).
-
-2. Install the server dependency and start the email API:
-
-```powershell
-npm install nodemailer express cors dotenv
-npm run start:server
-```
-
-The API will listen on port 3001 by default. The frontend contact form posts to `http://localhost:3001/api/send-email`.
-
-If you'd prefer a hosted solution, you can deploy the `server/sendEmail.js` as a serverless function (Vercel/Netlify) or use a third-party form service (Formspree, EmailJS). Update `REACT_APP_EMAIL_API_URL` in your `.env` to point to the deployed endpoint.
 

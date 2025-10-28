@@ -98,39 +98,24 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-    // Real submission to local email API
-    try {
-  const apiUrl = import.meta.env.VITE_EMAIL_API_URL || 'http://localhost:3001/api/send-email'
-  const res = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+    
+    // Simulate form submission (no actual email sending)
+    setTimeout(() => {
+      setSubmitStatus('success')
+      setFormData({ name: '', email: '', subject: '', message: '' })
+
+      // Success animation
+      anime({
+        targets: '.success-message',
+        opacity: [0, 1],
+        scale: [0.8, 1],
+        duration: 600,
+        easing: 'easeOutBack'
       })
 
-      const json = await res.json()
-      if (res.ok && json.ok) {
-        setSubmitStatus('success')
-        setFormData({ name: '', email: '', subject: '', message: '' })
-
-        // Success animation
-        anime({
-          targets: '.success-message',
-          opacity: [0, 1],
-          scale: [0.8, 1],
-          duration: 600,
-          easing: 'easeOutBack'
-        })
-      } else {
-        console.error('Email API error', json)
-        setSubmitStatus('error')
-      }
-    } catch (error) {
-      console.error('Submit error', error)
-      setSubmitStatus('error')
-    } finally {
       setIsSubmitting(false)
       setTimeout(() => setSubmitStatus(null), 5000)
-    }
+    }, 1000)
   }
 
   const contactInfo = [
@@ -325,7 +310,7 @@ const Contact = () => {
                   animate={{ opacity: 1, scale: 1 }}
                 >
                   {submitStatus === 'success'
-                    ? '✅ Message sent successfully! I\'ll get back to you soon.'
+                    ? '✅ Form submitted successfully! Please contact me directly via email.'
                     : '❌ Something went wrong. Please try again.'}
                 </motion.div>
               )}
